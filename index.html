@@ -3,28 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Roleta Histórica - 7º Ano</title>
+  <title>Roleta Histórica - Feira de Ciências</title>
+  <!-- Confetes para acerto -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     :root {
-      --azul: #2563eb;
-      --vermelho: #dc2626;
-      --verde: #16a34a;
-      --amarelo: #ca8a04;
-      --bg: #0f172a;
-      --card: #1e293b;
-      --text: #f8fafc;
+      --primary: #2563eb;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --gold: #f59e0b;
+      
+      --cat-azul: #2563eb;
+      --cat-vermelho: #e11d48;
+      --cat-verde: #059669;
+      --cat-amarelo: #d97706;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background: radial-gradient(circle at top, #1e293b, #0f172a);
+      background-color: var(--bg);
+      background-image: radial-gradient(#cbd5e1 1.2px, transparent 1.2px);
+      background-size: 20px 20px;
       color: var(--text);
       min-height: 100vh;
       display: flex;
@@ -32,33 +41,48 @@
       align-items: center;
       justify-content: space-between;
       padding: 16px;
-      overflow-x: hidden;
     }
 
+    /* Cabeçalho */
     header {
       text-align: center;
-      margin-top: 8px;
+      max-width: 420px;
+      margin-top: 6px;
     }
 
-    header h1 {
-      font-size: 1.4rem;
-      color: #fbbf24;
+    .school-tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
     }
 
     header p {
       font-size: 0.85rem;
-      color: #94a3b8;
+      color: var(--text-muted);
       margin-top: 4px;
     }
 
-    /* Container da Roleta */
-    .roulette-container {
+    /* Roleta */
+    .wheel-wrapper {
       position: relative;
       width: 320px;
       height: 320px;
-      margin: 20px auto;
+      margin: 18px auto;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -66,244 +90,276 @@
 
     .pointer {
       position: absolute;
-      top: -12px;
+      top: -14px;
       left: 50%;
       transform: translateX(-50%);
       width: 0;
       height: 0;
-      border-left: 16px solid transparent;
-      border-right: 16px solid transparent;
-      border-top: 30px solid #f59e0b;
-      z-index: 10;
-      filter: drop-shadow(0 3px 4px rgba(0,0,0,0.5));
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-top: 30px solid #dc2626;
+      z-index: 20;
+      filter: drop-shadow(0 4px 5px rgba(0,0,0,0.25));
     }
 
     canvas {
       border-radius: 50%;
-      box-shadow: 0 0 25px rgba(0, 0, 0, 0.6), 0 0 10px rgba(251, 191, 36, 0.3);
+      background: #ffffff;
+      box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.15), 0 0 0 8px #ffffff, 0 0 0 12px #e2e8f0;
     }
 
-    .center-button {
+    .spin-btn {
       position: absolute;
-      width: 68px;
-      height: 68px;
-      background: #f8fafc;
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, #ffffff, #f1f5f9);
       color: #0f172a;
-      border: 4px solid #f59e0b;
+      border: 4px solid var(--gold);
       border-radius: 50%;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       font-weight: 800;
-      font-size: 1rem;
+      font-size: 0.95rem;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-      z-index: 5;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      z-index: 10;
       user-select: none;
+      transition: transform 0.15s ease;
     }
 
-    .center-button:active {
-      transform: scale(0.95);
+    .spin-btn:active {
+      transform: scale(0.92);
+    }
+
+    .spin-btn span {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
     }
 
     /* Legendas */
-    .legend {
+    .legend-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
       width: 100%;
-      max-width: 340px;
-      margin-bottom: 12px;
-      font-size: 0.75rem;
+      max-width: 360px;
+      margin-bottom: 10px;
     }
 
-    .legend-item {
+    .legend-card {
       display: flex;
       align-items: center;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 6px 10px;
-      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
 
-    .legend-dot {
-      width: 12px;
-      height: 12px;
+    .dot {
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       margin-right: 8px;
       flex-shrink: 0;
     }
 
-    /* Modal de Perguntas e Resultado */
+    /* Modal do Quiz */
     .modal-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(6px);
+      inset: 0;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(4px);
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 16px;
       z-index: 100;
     }
 
     .modal-card {
-      background: var(--card);
-      border-radius: 18px;
-      padding: 22px;
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 24px;
       width: 100%;
-      max-width: 360px;
-      box-shadow: 0 15px 30px rgba(0,0,0,0.5);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      max-width: 400px;
+      box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.25);
+      animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
     @keyframes popIn {
-      from { transform: scale(0.85); opacity: 0; }
+      from { transform: scale(0.88); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
 
-    .category-badge {
+    .category-pill {
       display: inline-block;
       padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 700;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 800;
       text-transform: uppercase;
       margin-bottom: 12px;
     }
 
     .question-title {
       font-size: 1.05rem;
+      font-weight: 700;
+      color: #0f172a;
       line-height: 1.4;
       margin-bottom: 16px;
-      font-weight: 600;
     }
 
-    .options {
+    .options-list {
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
 
-    .option-btn {
-      background: rgba(255, 255, 255, 0.08);
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.15);
+    .option-item {
+      background: #f8fafc;
+      color: #1e293b;
+      border: 1.5px solid var(--border);
       border-radius: 12px;
       padding: 12px 14px;
       text-align: left;
       font-size: 0.9rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s;
+      line-height: 1.35;
+      transition: all 0.15s ease;
     }
 
-    .option-btn:active {
+    .option-item:active {
       transform: scale(0.98);
-      background: rgba(255, 255, 255, 0.15);
+      background: #e2e8f0;
+      border-color: #cbd5e1;
     }
 
-    /* Tela de Feedback / Resultado */
-    .feedback-box {
+    /* Feedback */
+    .feedback-area {
       display: none;
       text-align: center;
     }
 
     .feedback-icon {
-      font-size: 3.5rem;
-      margin-bottom: 10px;
-    }
-
-    .feedback-text {
-      font-size: 1.15rem;
-      font-weight: 700;
+      font-size: 3.2rem;
       margin-bottom: 8px;
     }
 
-    .feedback-desc {
-      font-size: 0.85rem;
-      color: #cbd5e1;
-      line-height: 1.4;
-      background: rgba(0,0,0,0.25);
+    .feedback-headline {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .feedback-explanation {
+      font-size: 0.86rem;
+      color: #334155;
+      background: #f1f5f9;
       padding: 12px;
-      border-radius: 10px;
+      border-radius: 12px;
+      line-height: 1.45;
       margin-bottom: 16px;
     }
 
-    .claim-voucher {
-      border: 2px dashed #fbbf24;
-      background: rgba(251, 191, 36, 0.1);
+    .voucher {
+      border: 2px dashed #f59e0b;
+      background: #fffbeb;
       padding: 12px;
       border-radius: 12px;
       margin-top: 10px;
     }
 
-    .claim-voucher strong {
-      color: #fbbf24;
-      font-size: 1.1rem;
+    .voucher span {
+      font-size: 0.78rem;
+      color: #92400e;
       display: block;
     }
 
-    .btn-action {
-      background: #f59e0b;
-      color: #0f172a;
+    .voucher strong {
+      color: #b45309;
+      font-size: 1.05rem;
+      display: block;
+      margin-top: 2px;
+    }
+
+    .action-btn {
+      background: #0f172a;
+      color: #ffffff;
       border: none;
       width: 100%;
-      padding: 12px;
+      padding: 13px;
       border-radius: 12px;
       font-weight: 700;
+      font-size: 0.95rem;
       margin-top: 14px;
       cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .action-btn:active {
+      background: #1e293b;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>Roleta Histórica</h1>
+    <div class="school-tag">7° Ano • Turma 701</div>
+    <h1>Roleta do Conhecimento</h1>
     <p>Brasil Século XIX: Abolição e Exclusão Social</p>
   </header>
 
-  <div class="roulette-container">
+  <div class="wheel-wrapper">
     <div class="pointer"></div>
-    <canvas id="wheel" width="300" height="300"></canvas>
-    <div class="center-button" id="spinBtn">GIRAR</div>
+    <canvas id="wheelCanvas" width="300" height="300"></canvas>
+    <div class="spin-btn" id="spinBtn">
+      GIRAR
+      <span>Tocar</span>
+    </div>
   </div>
 
-  <div class="legend">
-    <div class="legend-item"><div class="legend-dot" style="background: var(--azul);"></div>Leis & História</div>
-    <div class="legend-item"><div class="legend-dot" style="background: var(--vermelho);"></div>O Cortiço</div>
-    <div class="legend-item"><div class="legend-dot" style="background: var(--verde);"></div>Imigração</div>
-    <div class="legend-item"><div class="legend-dot" style="background: var(--amarelo);"></div>Abolição Inconclusa</div>
+  <div class="legend-grid">
+    <div class="legend-card"><div class="dot" style="background: var(--cat-azul);"></div>Leis & História</div>
+    <div class="legend-card"><div class="dot" style="background: var(--cat-vermelho);"></div>O Cortiço</div>
+    <div class="legend-card"><div class="dot" style="background: var(--cat-verde);"></div>Imigração</div>
+    <div class="legend-card"><div class="dot" style="background: var(--cat-amarelo);"></div>Abolição Inconclusa</div>
   </div>
 
-  <!-- Modal do Quiz -->
+  <!-- Modal Interativo -->
   <div class="modal-overlay" id="quizModal">
     <div class="modal-card">
-      <div id="quizContent">
-        <span class="category-badge" id="catBadge">Categoria</span>
-        <h2 class="question-title" id="questionText">Texto da pergunta...</h2>
-        <div class="options" id="optionsBox"></div>
+      <div id="quizView">
+        <span class="category-pill" id="catPill">Categoria</span>
+        <h2 class="question-title" id="questionText">Pergunta...</h2>
+        <div class="options-list" id="optionsContainer"></div>
       </div>
 
-      <div class="feedback-box" id="feedbackBox">
-        <div class="feedback-icon" id="feedbackIcon">🎉</div>
-        <div class="feedback-text" id="feedbackText">Parabéns! Você acertou!</div>
-        <p class="feedback-desc" id="feedbackDesc">Explicação rápida da resposta histórica.</p>
-        <div class="claim-voucher" id="voucherBox">
-          <span>Mostre esta tela no stand:</span>
-          <strong>🎟️ VALE 1 BRINDE HISTÓRICO</strong>
+      <div class="feedback-area" id="feedbackView">
+        <div class="feedback-icon" id="feedbackEmoji">🎉</div>
+        <div class="feedback-headline" id="feedbackTitle">Muito bem!</div>
+        <p class="feedback-explanation" id="feedbackExplanation">Explicação histórica da resposta.</p>
+        <div class="voucher" id="voucherTag">
+          <span>Apresente esta tela ao grupo:</span>
+          <strong>🎟️ VALE 1 BRINDE NO STAND</strong>
         </div>
-        <button class="btn-action" id="closeBtn">Girar Novamente</button>
+        <button class="action-btn" id="tryAgainBtn">Girar Novamente</button>
       </div>
     </div>
   </div>
 
   <script>
     /* ========================================================
-       SISTEMA DE ÁUDIO VIA WEB AUDIO API (100% INDEPENDENTE)
+       EFEITOS SONOROS (WEB AUDIO API)
        ======================================================== */
     let audioCtx = null;
 
@@ -316,285 +372,591 @@
       }
     }
 
-    // Som de clique/catraca ao rodar
-    function playTick() {
+    function playTickSound() {
       try {
         initAudio();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(450, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.035);
+        osc.frequency.setValueAtTime(520, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.03);
 
-        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.035);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.03);
 
         osc.connect(gain);
         gain.connect(audioCtx.destination);
 
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.035);
+        osc.stop(audioCtx.currentTime + 0.03);
       } catch (e) {}
     }
 
-    // Som de acerto (Acorde alegre de vitória)
-    function playSuccess() {
+    function playWinSound() {
       try {
         initAudio();
-        const freqs = [523.25, 659.25, 783.99, 1046.50]; // Notas Dó, Mi, Sol, Dó agudo
-        freqs.forEach((freq, idx) => {
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, i) => {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
 
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.09);
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.08);
 
-          gain.gain.setValueAtTime(0, audioCtx.currentTime + idx * 0.09);
-          gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + idx * 0.09 + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.09 + 0.35);
+          gain.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.08);
+          gain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + i * 0.08 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.08 + 0.32);
 
           osc.connect(gain);
           gain.connect(audioCtx.destination);
 
-          osc.start(audioCtx.currentTime + idx * 0.09);
-          osc.stop(audioCtx.currentTime + idx * 0.09 + 0.38);
+          osc.start(audioCtx.currentTime + i * 0.08);
+          osc.stop(audioCtx.currentTime + i * 0.08 + 0.35);
         });
       } catch (e) {}
     }
 
-    // Som de erro (Som grave de erro/buzzer)
-    function playError() {
+    function playErrorSound() {
       try {
         initAudio();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
 
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(160, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.3);
+        osc.frequency.setValueAtTime(170, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(90, audioCtx.currentTime + 0.28);
 
-        gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.28);
 
         osc.connect(gain);
         gain.connect(audioCtx.destination);
 
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.3);
+        osc.stop(audioCtx.currentTime + 0.28);
       } catch (e) {}
     }
 
     /* ========================================================
-       BANCO DE PERGUNTAS DO TRABALHO
+       BANCO DE PERGUNTAS EXPANDIDO (52 PERGUNTAS HISTÓRICAS)
        ======================================================== */
     const sectors = [
-      { name: "Leis & Linha do Tempo", color: "#2563eb", textColor: "#fff" },
-      { name: "O Cortiço (Bertoleza)", color: "#dc2626", textColor: "#fff" },
-      { name: "Imigração e Trabalho", color: "#16a34a", textColor: "#fff" },
-      { name: "Abolição Inconclusa", color: "#ca8a04", textColor: "#fff" }
+      { name: "Leis & Linha do Tempo", color: "#2563eb", textColor: "#ffffff", badgeBg: "#dbeafe", badgeColor: "#1e40af" },
+      { name: "O Cortiço", color: "#e11d48", textColor: "#ffffff", badgeBg: "#ffe4e6", badgeColor: "#9f1239" },
+      { name: "Imigração & Trabalho", color: "#059669", textColor: "#ffffff", badgeBg: "#d1fae5", badgeColor: "#065f46" },
+      { name: "Abolição Inconclusa", color: "#d97706", textColor: "#ffffff", badgeBg: "#fef3c7", badgeColor: "#92400e" }
     ];
 
-    const questions = {
-      0: [ // Azul
+    const questionsData = {
+      // SETOR 0: LEIS E LINHA DO TEMPO (13 Perguntas)
+      0: [
         {
-          q: "Qual lei de 1850 estabeleceu que terras públicas só poderiam ser adquiridas por compra, dificultando o acesso dos futuros libertos à propriedade?",
-          opts: ["Lei Áurea", "Lei de Terras", "Lei dos Sexagenários"],
+          q: "Qual lei de 1850 estabeleceu que as terras públicas devolutas só poderiam ser adquiridas por compra em dinheiro?",
+          options: ["Lei Áurea", "Lei de Terras", "Lei Eusébio de Queirós"],
           correct: 1,
-          exp: "A Lei de Terras de 1850 impediu a ocupação livre e exigiu dinheiro vivo, deixando escravizados e trabalhadores pobres sem acesso à terra."
+          exp: "A Lei de Terras de 1850 impediu a posse livre, dificultando o acesso de trabalhadores pobres e escravizados à propriedade rural."
         },
         {
-          q: "A assinatura da Lei Áurea em 1888 garantiu moradia, terras e educação básica para os recém-libertos?",
-          opts: ["Sim, foi um plano completo", "Não, apenas declarou o fim legal sem suporte"],
-          correct: 1,
-          exp: "A Lei Áurea acabou legalmente com a escravidão, mas não criou medidas nem auxílios de inserção social para as famílias negras."
-        }
-      ],
-      1: [ // Vermelho
-        {
-          q: "No romance 'O Cortiço' (1890), que engano cruel o comerciante João Romão praticou contra Bertoleza?",
-          opts: ["Fugiu com as roupas dela", "Entregou-lhe uma falsa carta de alforria e reteve seus recursos", "Denunciou-a à polícia por roubo"],
-          correct: 1,
-          exp: "João Romão enganou Bertoleza com uma carta de alforria falsa para lucrar com o esforço dela enquanto enriquecia no cortiço."
+          q: "Em qual data exata a Princesa Isabel assinou a Lei Áurea, extinguindo legalmente a escravidão no Brasil?",
+          options: ["15 de novembro de 1889", "7 de setembro de 1822", "13 de maio de 1888"],
+          correct: 2,
+          exp: "A Lei Áurea foi sancionada em 13 de maio de 1888, oficializando o término legal do cativeiro no país."
         },
         {
-          q: "O que a personagem fictícia Bertoleza simboliza na realidade brasileira da época?",
-          opts: ["O sucesso rápido de mulheres libertas", "A exploração e desamparo vividos por mulheres negras no pós-abolição"],
+          q: "O que determinava a Lei do Ventre Livre, promulgada em 28 de setembro de 1871?",
+          options: ["Libertação imediata de todos os idosos", "Liberdade, sob condições legais, para os filhos de mulheres escravizadas nascidos a partir daquela data", "Distribuição gratuita de terras para mães libertas"],
           correct: 1,
-          exp: "Bertoleza simboliza as pessoas cujo trabalho árduo gerava riqueza, mas que eram descartadas e desprovidas de proteção jurídica."
+          exp: "A lei considerava livres os filhos de mulheres escravizadas, mas exigia que trabalhassem até os 21 anos ou fossem entregues ao Estado mediante indenização."
+        },
+        {
+          q: "A Lei dos Sexagenários (1885) concedia liberdade a pessoas escravizadas com mais de quantos anos?",
+          options: ["50 anos", "60 anos", "70 anos"],
+          correct: 1,
+          exp: "Concedia liberdade a escravizados com 60 anos ou mais, mas ainda impunha 3 anos adicionais de prestação de serviços como indenização aos senhores."
+        },
+        {
+          q: "Quantos artigos continha o texto original da Lei Áurea de 1888?",
+          options: ["Mais de 50 artigos detalhados", "Apenas 2 artigos, sem prever auxílio social ou indenizações", "10 artigos prevendo pensão para idosos"],
+          correct: 1,
+          exp: "A lei era extremamente curta: apenas declarou extinta a escravidão e revogou as disposições em contrário, sem criar nenhum plano de integração."
+        },
+        {
+          q: "A Lei Eusébio de Queirós, aprovada em 1850, determinou:",
+          options: ["A proibição definitiva do tráfico negreiro transatlântico para o Brasil", "O direito a salário para os escravizados", "A criação das primeiras escolas públicas para libertos"],
+          correct: 0,
+          exp: "A lei encerrou a entrada forçada de novos africanos pelo Oceano Atlântico, intensificando o tráfico interno de escravizados do Nordeste para o Sudeste."
+        },
+        {
+          q: "Qual importante mudança no regime político do Brasil aconteceu em 15 de novembro de 1889, um ano após a abolição?",
+          options: ["Início do Segundo Reinado", "Proclamação da República", "Independência do Brasil"],
+          correct: 1,
+          exp: "Em 1889 o Brasil deixou de ser uma monarquia chefiada por Dom Pedro II e tornou-se uma república, mas manteve as desigualdades sociais."
+        },
+        {
+          q: "Quem governou o Brasil durante quase todo o Segundo Reinado, até a chegada da República?",
+          options: ["Dom Pedro I", "Getúlio Vargas", "Dom Pedro II"],
+          correct: 2,
+          exp: "Dom Pedro II governou o Império do Brasil de 1840 até a deposição da monarquia em novembro de 1889."
+        },
+        {
+          q: "Qual província brasileira aboliu a escravidão 4 anos antes da Lei Áurea, em 1884, ficando conhecida como 'Terra da Luz'?",
+          options: ["Ceará", "São Paulo", "Rio de Janeiro"],
+          correct: 0,
+          exp: "O Ceará foi a primeira província brasileira a abolir totalmente a escravidão em seu território, em março de 1884."
+        },
+        {
+          q: "Como o movimento abolicionista atuava na sociedade nos anos anteriores a 1888?",
+          options: ["Apenas com cartas secretas ao imperador", "Por meio de comícios populares, ações na justiça, jornais e apoio a fugas", "Não houve resistência popular antes de 1888"],
+          correct: 1,
+          exp: "O abolicionismo foi um dos maiores movimentos populares do país, reunindo pessoas negras livres e escravizadas, advogados, artistas e jornalistas."
+        },
+        {
+          q: "A Lei Áurea previu indenização financeira para os proprietários de escravizados?",
+          options: ["Sim, uma grande soma em ouro", "Não, a lei não concedeu indenização aos antigos senhores"],
+          correct: 1,
+          exp: "Apesar da forte pressão de fazendeiros monarquistas, a Lei Áurea não concedeu indenização financeira nem aos senhores e nem aos ex-escravizados."
+        },
+        {
+          q: "As leis emancipacionistas anteriores a 1888 (Ventre Livre e Sexagenários) conseguiram resolver o problema da escravidão?",
+          options: ["Sim, libertaram a maioria absoluta dos trabalhadores", "Não, foram medidas lentas e limitadas que buscavam adiar o fim da escravidão"],
+          correct: 1,
+          exp: "Essas medidas eram paliativas e criadas pelas elites para manter o controle sobre o trabalho forçado pelo maior tempo possível."
+        },
+        {
+          q: "O documento legal que concedia a liberdade individual a uma pessoa escravizada era chamado de:",
+          options: ["Carta de Alforria", "Título de Eleitor", "Certidão de Posse"],
+          correct: 0,
+          exp: "A carta de alforria era o documento pelo qual o senhor formalizava a liberdade de uma pessoa escravizada, seja por compra ou concessão."
         }
       ],
-      2: [ // Verde
+
+      // SETOR 1: O CORTIÇO E BERTOLEZA (13 Perguntas)
+      1: [
         {
-          q: "Por qual razão muitos proprietários e governos subsidiaram passagens e priorizaram imigrantes europeus no café?",
-          opts: ["Porque negros se recusavam a trabalhar", "Por preconceito racial e políticas de branqueamento da população"],
+          q: "Quem é o autor do clássico romance naturalista 'O Cortiço', publicado em 1890?",
+          options: ["Machado de Assis", "Aluísio Azevedo", "José de Alencar"],
           correct: 1,
-          exp: "Havia forte preconceito racial e um projeto de branqueamento promovido pelas elites, marginalizando o trabalhador negro nacional."
+          exp: "Aluísio Azevedo escreveu 'O Cortiço', uma das maiores obras de crítica social da literatura brasileira."
+        },
+        {
+          q: "Qual era a ocupação de Bertoleza no início da história do romance?",
+          options: ["Professora particular", "Quitandeira e trabalhadora incansável", "Dona de uma grande fazenda"],
+          correct: 1,
+          exp: "Bertoleza trabalhava vendendo peixe e quitandas com grande esforço para conseguir economias próprias."
+        },
+        {
+          q: "Qual golpe desonesto o comerciante João Romão aplicou contra Bertoleza?",
+          options: ["Entregou uma carta de alforria falsa e administrou suas economias em benefício próprio", "Roubou os sapatos dela na venda", "Mandou prendê-la por dívidas inexistentes"],
+          correct: 0,
+          exp: "João Romão a fez acreditar que estava livre com um documento falsificado para utilizar todo o dinheiro e trabalho dela."
+        },
+        {
+          q: "De que forma João Romão utilizou as economias e o trabalho diário de Bertoleza?",
+          options: ["Doou tudo para caridade no bairro", "Comprou terrenos e construiu o cortiço, acumulando riqueza", "Comprou uma passagem de navio para a Europa"],
+          correct: 1,
+          exp: "Ele se aproveitou das economias e da dedicação de Bertoleza para erguer sua venda, a pedreira e as casinhas do cortiço."
+        },
+        {
+          q: "Por que João Romão decidiu se afastar e descartar Bertoleza no final da narrativa?",
+          options: ["Porque pretendia casar-se com Zulmira para subir na escala social da elite", "Porque faliu financeiramente", "Porque ela decidiu se mudar de cidade"],
+          correct: 0,
+          exp: "João Romão queria ser aceito pela aristocracia e precisava livrar-se da mulher negra que fora sua companheira e base de sua riqueza."
+        },
+        {
+          q: "O que João Romão fez para tentar se livrar definitivamente de Bertoleza?",
+          options: ["Pagou uma indenização milionária", "Denunciou-a aos antigos proprietários como escravizada foragida", "Ajudou-a a abrir um novo negócio"],
+          correct: 1,
+          exp: "Ele enviou uma carta aos filhos do antigo senhor de Bertoleza avisando onde encontrar a mulher que acreditava estar livre."
+        },
+        {
+          q: "Qual foi a atitude trágica e desesperada de Bertoleza ao ver os policiais chegarem para capturá-la?",
+          options: ["Aceitou pacificamente voltar à senzala", "Tirou a própria vida com uma faca de cozinha para não voltar à escravidão", "Fugiu correndo para o mato"],
+          correct: 1,
+          exp: "Percebendo a traição extrema e recusando-se a voltar a ser escravizada, Bertoleza suicidou-se num ato dramático de desespero e resistência."
+        },
+        {
+          q: "O que a personagem fictícia Bertoleza simboliza na análise sociológica do Brasil do século XIX?",
+          options: ["O sucesso rápido de ex-escravizados no comércio", "A exploração e o desamparo enfrentados por mulheres negras cujos esforços ergueram riquezas sem proteção jurídica", "O equilíbrio de direitos entre patrões e empregados"],
+          correct: 1,
+          exp: "Bertoleza representa as inúmeras trabalhadoras negras que geraram lucros para outros, mas foram completamente marginalizadas pela sociedade."
+        },
+        {
+          q: "Em qual cidade brasileira se passa a história do livro 'O Cortiço'?",
+          options: ["Rio de Janeiro", "Salvador", "Belo Horizonte"],
+          correct: 0,
+          exp: "A trama se passa no Rio de Janeiro, então capital do Império, retratando o crescimento das habitações populares coletivas."
+        },
+        {
+          q: "O que era o 'cortiço' retratado no livro de Aluísio Azevedo?",
+          options: ["Um palacete luxuoso para diplomatas", "Uma habitação coletiva precária onde viviam lavadeiras, pedreiros e imigrantes pobres", "Uma escola para formação de artistas"],
+          correct: 1,
+          exp: "O cortiço era um aglomerado de casinhas e quartos alugados com condições sanitárias difíceis, onde conviviam negros e imigrantes pobres."
+        },
+        {
+          q: "Qual corrente literária caracteriza 'O Cortiço', com foco em observação científica, vícios humanos e determinismo do meio social?",
+          options: ["Naturalismo", "Romantismo", "Modernismo"],
+          correct: 0,
+          exp: "O livro é o ápice do Naturalismo brasileiro, retratando o comportamento humano influenciado pelo meio, pela raça e pelo momento."
+        },
+        {
+          q: "Além de ajudar no comércio e no sustento, que outra função pesada Bertoleza desempenhava para João Romão?",
+          options: ["Cozinhava, lavava e realizava todos os afazeres domésticos sem descanso", "Era a contadora oficial do banco da cidade", "Vigiava a praia à noite"],
+          correct: 0,
+          exp: "Ela cuidava de todas as tarefas domésticas e do trabalho pesado da venda, sem receber salário ou descanso."
+        },
+        {
+          q: "Ao analisar a literatura articulada à História, o caso de Bertoleza nos ensina que:",
+          options: ["A literatura do século XIX ignorava os problemas do povo", "A ficção é capaz de denunciar violências sociais e discriminações reais da época", "A escravidão trazia harmonia social entre diferentes classes"],
+          correct: 1,
+          exp: "Obras literárias expressam as tensões sociais de sua época, ajudando historiadores a compreender o preconceito e a exploração vividos na prática."
         }
       ],
-      3: [ // Amarelo
+
+      // SETOR 2: IMIGRAÇÃO E MERCADO DE TRABALHO (13 Perguntas)
+      2: [
         {
-          q: "O que significa historicamente o termo 'Abolição Inconclusa' abordado no trabalho?",
-          opts: ["A lei foi revogada anos depois", "A escravidão acabou na lei, mas suas marcas de exclusão social e racismo persistem"],
+          q: "Para qual atividade econômica a maioria dos imigrantes europeus foi atraída no final do século XIX no Sudeste brasileiro?",
+          options: ["Mineração de diamantes", "Lavouras de café", "Construção naval"],
           correct: 1,
-          exp: "Indica que o término legal não eliminou as barreiras estruturais na educação, trabalho digno e moradia."
+          exp: "A expansão das fazendas de café, principalmente no interior paulista, foi o principal destino da mão de obra imigrante."
+        },
+        {
+          q: "Qual nacionalidade de imigrantes formou o maior contingente a trabalhar no café de São Paulo a partir da década de 1880?",
+          options: ["Italianos", "Franceses", "Russos"],
+          correct: 0,
+          exp: "Milhares de famílias italianas migraram para o Brasil fugindo de crises econômicas na Europa para trabalhar nas fazendas paulistas."
+        },
+        {
+          q: "O que foi a chamada teoria do 'branqueamento' defendida por membros das elites políticas da época?",
+          options: ["Pintar as ruas de branco por higiene", "A tese racista de que a vinda em massa de europeus tornaria a população mais branca e desenvolvida ao longo das gerações", "O cultivo exclusivo de flores brancas"],
+          correct: 1,
+          exp: "Foi uma política racista de Estado que associava modernidade e progresso à raça branca, buscando apagar as raízes afro-indígenas."
+        },
+        {
+          q: "Que incentivos financeiros o governo paulista e fazendeiros ofereciam para atrair imigrantes europeus?",
+          options: ["Passagens marítimas pagas, hospedagem inicial e custeio do transporte até a fazenda", "Salários adiantados de cinco anos", "Casas próprias gratuitas no centro da cidade"],
+          correct: 0,
+          exp: "Políticas públicas gastaram vultosas quantias pagando a viagem e recepção dos europeus, auxílio nunca estendido aos ex-escravizados."
+        },
+        {
+          q: "A população negra recém-liberta recebeu incentivos do governo para conseguir trabalho com carteira assinada ou comprar terras?",
+          options: ["Sim, receberam pequenas chácaras", "Não, foram deixados à própria sorte, sem apoio estatal ou políticas de transição", "Receberam ferramentas agrícolas importadas"],
+          correct: 1,
+          exp: "Não houve nenhuma política de inclusão socioeconômica para os libertos, gerando profunda desigualdade de oportunidades no trabalho."
+        },
+        {
+          q: "Os imigrantes europeus encontraram condições ideais e enriqueceram facilmente no Brasil?",
+          options: ["Sim, todos ficaram ricos no primeiro ano", "Não, muitos enfrentaram dívidas extorsivas, jornadas exaustivas e choques com os fazendeiros", "Eles trabalhavam apenas 4 horas por dia"],
+          correct: 1,
+          exp: "Muitos fazendeiros acostumados com o cativeiro tratavam os imigrantes com violência e imposição de dívidas forçadas nas vendas da fazenda."
+        },
+        {
+          q: "Que tipo de trabalho restava para a maioria das pessoas negras nas cidades como Rio e Salvador após a abolição?",
+          options: ["Cargos públicos de alta liderança", "Trabalhos informais, temporários e mal remunerados (ambulantes, carregadores, lavadeiras, serventes)", "Sócios de grandes indústrias"],
+          correct: 1,
+          exp: "Sem acesso a estudo e terra, a população negra sobreviveu por meio de ocupações informais e serviços pesados no meio urbano."
+        },
+        {
+          q: "Qual argumento preconceituoso era frequentemente utilizado por patrões da época para não contratar trabalhadores negros?",
+          options: ["Que faltavam navios para transportá-los", "A falsa alegação de que eles não se adaptariam à disciplina do trabalho assalariado moderno", "Que eles sabiam falar italiano melhor que os outros"],
+          correct: 1,
+          exp: "O racismo estrutural rotulava os trabalhadores nacionais como despreparados, justificando a preferência pelos brancos estrangeiros."
+        },
+        {
+          q: "O que era a 'Hospedaria de Imigrantes', como a instalada no bairro do Brás em São Paulo?",
+          options: ["Um hotel de luxo para turistas", "Um complexo público onde os recém-chegados desembarcavam, eram cadastrados e direcionados para as fazendas", "Um quartel militar"],
+          correct: 1,
+          exp: "Era o local onde milhares de famílias de imigrantes recebiam triagem médica, alimentação e assinavam contratos com os fazendeiros."
+        },
+        {
+          q: "Na Região Sul do Brasil (como RS e SC), qual foi o modelo predominante da imigração de alemães e italianos?",
+          options: ["Trabalho forçado em minas", "Colônias de pequenas propriedades agrícolas familiares", "Trabalho exclusivamente em bancos"],
+          correct: 1,
+          exp: "No Sul, o governo incentivou núcleos coloniais onde os imigrantes se tornavam donos de pequenos lotes agrícolas para produzir alimentos."
+        },
+        {
+          q: "Em relação ao acesso à terra, qual foi o contraste entre os imigrantes do Sul e a população negra liberta?",
+          options: ["Imigrantes no Sul tiveram acesso a lotes de terra próprios, enquanto libertos foram barrados pela Lei de Terras", "Nenhum grupo teve direito à terra", "Os ex-escravizados ganharam as melhores fazendas"],
+          correct: 0,
+          exp: "Enquanto imigrantes receberam lotes em projetos de colonização, pessoas negras foram excluídas do acesso legal à terra."
+        },
+        {
+          q: "O que acontecia com os imigrantes no 'sistema de parceria' adotado inicialmente pelo Senador Vergueiro?",
+          options: ["Viravam sócios iguais nas colheitas", "Ficavam presos por dívidas cobradas pelo transporte e alimentos fornecidos a preços abusivos", "Recebiam medalhas do imperador"],
+          correct: 1,
+          exp: "O sistema causou revoltas (como a Revolta de Ibicaba em 1856) devido à exploração e ao endividamento permanente dos imigrantes."
+        },
+        {
+          q: "A transição do trabalho escravizado para o trabalho assalariado no Brasil foi caracterizada por:",
+          options: ["Distribuição de renda equilibrada", "Manutenção de antigas hierarquias sociais e privilégio da mão de obra europeia", "Pleno emprego imediato para todos"],
+          correct: 1,
+          exp: "A modernização econômica do país preservou privilégios e excluiu a população negra do mercado de trabalho formal."
+        }
+      ],
+
+      // SETOR 3: ABOLIÇÃO INCONCLUSA E SOCIEDADE (13 Perguntas)
+      3: [
+        {
+          q: "O que historiadores e sociólogos definem como 'Abolição Inconclusa'?",
+          options: ["A escravidão foi aprovada novamente em 1900", "A liberdade legal foi concedida, mas sem medidas de inclusão socioeconômica, mantendo a desigualdade até os dias de hoje", "A lei só valeu para as cidades praianas"],
+          correct: 1,
+          exp: "A expressão indica que a igualdade jurídica não veio acompanhada de justiça econômica, terra, moradia ou combate ao racismo."
+        },
+        {
+          q: "Qual importante intelectual, advogado e jornalista negro libertou mais de 500 escravizados nos tribunais antes de 1888?",
+          options: ["Luiz Gama", "Tiradentes", "Princesa Isabel"],
+          correct: 0,
+          exp: "Luiz Gama foi um dos maiores líderes abolicionistas do Brasil, usando as leis para garantir a liberdade de centenas de pessoas."
+        },
+        {
+          q: "Como o Código Penal republicano de 1890 perseguiu as tradições culturais e as pessoas negras pobres?",
+          options: ["Criou prêmios para danças africanas", "Criminalizou a vadiagem (não ter carteira de trabalho) e a prática da capoeira", "Proibiu roupas de linho branco"],
+          correct: 1,
+          exp: "A legislação do início da República criminalizou costumes populares e perseguia quem não comprovasse emprego formal nas ruas."
+        },
+        {
+          q: "Qual renomado escritor negro, um dos maiores nomes da literatura brasileira, fundou a Academia Brasileira de Letras?",
+          options: ["Castro Alves", "Machado de Assis", "Monteiro Lobato"],
+          correct: 1,
+          exp: "Machado de Assis, neto de escravizados alforriados, tornou-se o principal romancista brasileiro e primeiro presidente da ABL."
+        },
+        {
+          q: "Como a ausência de políticas habitacionais e a derrubada dos cortiços no Rio de Janeiro impulsionaram o surgimento das favelas?",
+          options: ["As pessoas foram morar em palácios", "Sem moradia acessível no centro, ex-escravizados e operários pobres passaram a erguer barracos nas encostas dos morros", "Todos compraram apartamentos modernos"],
+          correct: 1,
+          exp: "As reformas urbanas expulsaram a população humilde do centro da cidade, forçando a ocupação dos morros e dando início às primeiras favelas."
+        },
+        {
+          q: "André Rebouças, importante conselheiro e líder da causa abolicionista, defendia que a abolição deveria ser acompanhada de:",
+          options: ["Reforma agrária e democratização das terras para os libertos trabalharem", "Expulsão de todos os ex-escravizados para o exterior", "Construção de prisões maiores"],
+          correct: 0,
+          exp: "André Rebouças cunhou o conceito de 'democracia rural', insistindo que a liberdade só seria plena se os libertos tivessem terra para cultivar."
+        },
+        {
+          q: "No período do Império, as pessoas escravizadas tinham direitos políticos, como poder votar ou se candidatar?",
+          options: ["Sim, votavam normalmente", "Não, a Constituição de 1824 proibia pessoas escravizadas de votar e exercer qualquer direito político"],
+          correct: 1,
+          exp: "Eram legalmente consideradas propriedades particulares e desprovidas de cidadania e representação política."
+        },
+        {
+          q: "O que são ações e políticas de 'Reparação Histórica' debatidas na sociedade brasileira atual?",
+          options: ["Reformar prédios antigos no centro", "Medidas governamentais (como cotas e investimentos em áreas periféricas) para diminuir danos causados por séculos de escravidão", "Cancelar feriados nacionais"],
+          correct: 1,
+          exp: "São medidas criadas para compensar as desvantagens acumuladas historicamente pela população negra no Brasil."
+        },
+        {
+          q: "A liberdade alcançada em 1888 foi apenas um presente benevolente da monarquia brasileira?",
+          options: ["Sim, a população aceitou a escravidão pacificamente", "Não, foi conquista histórica de resistência popular, quilombos, revoltas e intensa pressão política", "Foi imposta por outros países sem participação brasileira"],
+          correct: 1,
+          exp: "A abolição foi arrancada pela mobilização de escravizados, organizações negras, insurreições e pressão abolicionista em todo o país."
+        },
+        {
+          q: "Qual lei federal promulgada em 2003 tornou obrigatório o ensino da História e Cultura Afro-Brasileira nas escolas?",
+          options: ["Lei Áurea", "Lei 10.639/2003", "Código de Trânsito"],
+          correct: 1,
+          exp: "A Lei 10.639/2003 garantiu o reconhecimento e o resgate da contribuição do povo negro na formação da sociedade brasileira nas escolas."
+        },
+        {
+          q: "O acesso à educação pública de qualidade no final do século XIX era amplamente garantido para as crianças negras recém-libertas?",
+          options: ["Sim, havia colégios para todos os jovens", "Não, a escola era elitizada e as famílias pobres tinham barreiras para matricular seus filhos", "Era obrigatório estudar em universidades"],
+          correct: 1,
+          exp: "O acesso à escola era muito restrito no Brasil do século XIX, impedindo que os filhos dos libertos rompessem o ciclo da pobreza."
+        },
+        {
+          q: "Qual jornalista e escritor negro criou o jornal 'O Homem de Cor' em 1833 para defender a cidadania dos afrodescendentes?",
+          options: ["Francisco de Paula Brito", "Olavo Bilac", "Carlos Drummond de Andrade"],
+          correct: 0,
+          exp: "Paula Brito foi pioneiro da imprensa negra no Brasil, criando um dos primeiros periódicos de debate racial do país."
+        },
+        {
+          q: "Compreender as injustiças do Brasil do século XIX é essencial no presente para:",
+          options: ["Apenas memorizar datas em provas", "Combater o preconceito racial e lutar por uma sociedade democrática com igualdade real de oportunidades", "Apagar a história das gerações passadas"],
+          correct: 1,
+          exp: "Conhecer a história permite reconhecer as origens das desigualdades atuais e defender os direitos de cidadania para todos."
         }
       ]
     };
 
     /* ========================================================
-       DESENHO E ANIMAÇÃO DA ROLETA
+       RENDERIZAÇÃO E LÓGICA DA ROLETA
        ======================================================== */
-    const canvas = document.getElementById("wheel");
+    const canvas = document.getElementById("wheelCanvas");
     const ctx = canvas.getContext("2d");
     const spinBtn = document.getElementById("spinBtn");
     const numSectors = sectors.length;
     const arc = (2 * Math.PI) / numSectors;
 
-    let currentAngle = 0;
+    let currentRotation = 0;
     let isSpinning = false;
     let lastTickAngle = 0;
 
-    function drawWheel() {
+    function renderWheel() {
       const radius = canvas.width / 2;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       for (let i = 0; i < numSectors; i++) {
-        const angle = currentAngle + i * arc;
+        const angle = currentRotation + i * arc;
+        
         ctx.beginPath();
         ctx.fillStyle = sectors[i].color;
         ctx.moveTo(radius, radius);
         ctx.arc(radius, radius, radius, angle, angle + arc);
         ctx.fill();
+
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 3;
         ctx.stroke();
 
-        // Rótulos
         ctx.save();
         ctx.fillStyle = sectors[i].textColor;
-        ctx.font = "bold 13px sans-serif";
+        ctx.font = "bold 13px system-ui, sans-serif";
         ctx.translate(radius, radius);
         ctx.rotate(angle + arc / 2);
         ctx.textAlign = "right";
-        ctx.fillText(sectors[i].name, radius - 15, 5);
+        ctx.fillText(sectors[i].name, radius - 16, 5);
         ctx.restore();
       }
     }
 
-    drawWheel();
+    renderWheel();
 
-    function spin() {
+    function startSpin() {
       if (isSpinning) return;
       initAudio();
       isSpinning = true;
 
-      const spinRounds = 4 + Math.random() * 3; // 4 a 7 voltas
-      const extraAngle = Math.random() * 2 * Math.PI;
-      const totalRotation = spinRounds * 2 * Math.PI + extraAngle;
-      
-      const duration = 4000;
+      const fullSpins = 4 + Math.random() * 3;
+      const randomExtra = Math.random() * 2 * Math.PI;
+      const totalDelta = fullSpins * 2 * Math.PI + randomExtra;
+
+      const duration = 3800;
       const startTime = performance.now();
-      const initialAngle = currentAngle;
+      const initialAngle = currentRotation;
       lastTickAngle = initialAngle;
 
-      function animate(time) {
-        const elapsed = time - startTime;
+      function frame(now) {
+        const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        // Easing cúbico para desaceleração realista
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-        currentAngle = initialAngle + totalRotation * easeOut;
+        const ease = 1 - Math.pow(1 - progress, 3);
+        currentRotation = initialAngle + totalDelta * ease;
 
-        // Disparo do som de rotação (a cada fração de setor percorrida)
-        if (Math.abs(currentAngle - lastTickAngle) > arc / 2) {
-          playTick();
-          lastTickAngle = currentAngle;
+        if (Math.abs(currentRotation - lastTickAngle) > arc / 2) {
+          playTickSound();
+          lastTickAngle = currentRotation;
         }
 
-        drawWheel();
+        renderWheel();
 
         if (progress < 1) {
-          requestAnimationFrame(animate);
+          requestAnimationFrame(frame);
         } else {
           isSpinning = false;
-          determineWinner();
+          handleResult();
         }
       }
 
-      requestAnimationFrame(animate);
+      requestAnimationFrame(frame);
     }
 
-    spinBtn.addEventListener("click", spin);
+    spinBtn.addEventListener("click", startSpin);
 
-    function determineWinner() {
-      // Cálculo do ponteiro no topo (3 * PI / 2 radianos ou 270 graus)
-      const normalizedAngle = (currentAngle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-      const pointerAngle = (3 * Math.PI / 2 - normalizedAngle + 2 * Math.PI) % (2 * Math.PI);
-      const winnerIndex = Math.floor(pointerAngle / arc) % numSectors;
+    function handleResult() {
+      const normalized = (currentRotation % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+      const pointerTarget = (3 * Math.PI / 2 - normalized + 2 * Math.PI) % (2 * Math.PI);
+      const winningIdx = Math.floor(pointerTarget / arc) % numSectors;
 
-      showQuestion(winnerIndex);
+      openQuiz(winningIdx);
     }
 
     /* ========================================================
-       LÓGICA DO MODAL E DO QUIZ
+       SORTEIO E CONTROLE DO QUIZ
        ======================================================== */
     const modal = document.getElementById("quizModal");
-    const quizContent = document.getElementById("quizContent");
-    const feedbackBox = document.getElementById("feedbackBox");
-    const catBadge = document.getElementById("catBadge");
+    const quizView = document.getElementById("quizView");
+    const feedbackView = document.getElementById("feedbackView");
+    const catPill = document.getElementById("catPill");
     const questionText = document.getElementById("questionText");
-    const optionsBox = document.getElementById("optionsBox");
+    const optionsContainer = document.getElementById("optionsContainer");
 
-    function showQuestion(sectorIdx) {
-      const sector = sectors[sectorIdx];
-      const sectorQuestions = questions[sectorIdx];
-      const qData = sectorQuestions[Math.floor(Math.random() * sectorQuestions.length)];
+    // Registro das últimas perguntas feitas para evitar repetições imediatas
+    const usedQuestions = { 0: [], 1: [], 2: [], 3: [] };
 
-      catBadge.textContent = sector.name;
-      catBadge.style.backgroundColor = sector.color;
-      catBadge.style.color = sector.textColor;
+    function openQuiz(sectorIdx) {
+      const sec = sectors[sectorIdx];
+      const list = questionsData[sectorIdx];
 
-      questionText.textContent = qData.q;
-      optionsBox.innerHTML = "";
+      // Reset caso todas as questões da categoria já tenham sido sorteadas
+      if (usedQuestions[sectorIdx].length >= list.length) {
+        usedQuestions[sectorIdx] = [];
+      }
 
-      qData.opts.forEach((optText, index) => {
+      // Sorteia um índice que ainda não tenha saído
+      let availableIndices = [];
+      for (let i = 0; i < list.length; i++) {
+        if (!usedQuestions[sectorIdx].includes(i)) {
+          availableIndices.push(i);
+        }
+      }
+
+      const chosenIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+      usedQuestions[sectorIdx].push(chosenIndex);
+
+      const item = list[chosenIndex];
+
+      catPill.textContent = sec.name;
+      catPill.style.backgroundColor = sec.badgeBg;
+      catPill.style.color = sec.badgeColor;
+
+      questionText.textContent = item.q;
+      optionsContainer.innerHTML = "";
+
+      item.options.forEach((optText, idx) => {
         const btn = document.createElement("button");
-        btn.className = "option-btn";
+        btn.className = "option-item";
         btn.textContent = optText;
-        btn.onclick = () => checkAnswer(index === qData.correct, qData.exp);
-        optionsBox.appendChild(btn);
+        btn.onclick = () => verify(idx === item.correct, item.exp);
+        optionsContainer.appendChild(btn);
       });
 
-      quizContent.style.display = "block";
-      feedbackBox.style.display = "none";
+      quizView.style.display = "block";
+      feedbackView.style.display = "none";
       modal.style.display = "flex";
     }
 
-    function checkAnswer(isCorrect, explanation) {
-      quizContent.style.display = "none";
-      feedbackBox.style.display = "block";
+    function verify(isCorrect, explanation) {
+      quizView.style.display = "none";
+      feedbackView.style.display = "block";
 
-      const icon = document.getElementById("feedbackIcon");
-      const title = document.getElementById("feedbackText");
-      const desc = document.getElementById("feedbackDesc");
-      const voucher = document.getElementById("voucherBox");
+      const emoji = document.getElementById("feedbackEmoji");
+      const title = document.getElementById("feedbackTitle");
+      const exp = document.getElementById("feedbackExplanation");
+      const voucher = document.getElementById("voucherTag");
 
-      desc.textContent = explanation;
+      exp.textContent = explanation;
 
       if (isCorrect) {
-        playSuccess(); // Toca áudio de vitória
-        icon.textContent = "🎉";
-        title.textContent = "Excelente! Você acertou!";
-        title.style.color = "#4ade80";
+        playWinSound();
+        confetti({
+          particleCount: 80,
+          spread: 60,
+          origin: { y: 0.6 }
+        });
+
+        emoji.textContent = "🎉";
+        title.textContent = "Parabéns! Você acertou!";
+        title.style.color = "#16a34a";
         voucher.style.display = "block";
       } else {
-        playError(); // Toca áudio de erro
-        icon.textContent = "💡";
+        playErrorSound();
+        emoji.textContent = "💡";
         title.textContent = "Quase lá! Veja a explicação:";
-        title.style.color = "#f87171";
+        title.style.color = "#dc2626";
         voucher.style.display = "none";
       }
     }
 
-    document.getElementById("closeBtn").addEventListener("click", () => {
+    document.getElementById("tryAgainBtn").addEventListener("click", () => {
       modal.style.display = "none";
     });
   </script>
