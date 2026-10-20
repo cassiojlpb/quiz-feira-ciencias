@@ -3,28 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Roleta Histórica - 7º Ano</title>
+  <title>Roleta Histórica - Feira de Ciências</title>
+  <!-- Confetes para comemoração de acerto -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     :root {
-      --azul: #2563eb;
-      --vermelho: #dc2626;
-      --verde: #16a34a;
-      --amarelo: #ca8a04;
-      --bg: #0f172a;
-      --card: #1e293b;
-      --text: #f8fafc;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --gold: #f59e0b;
+      
+      --cat-azul: #2563eb;
+      --cat-vermelho: #e11d48;
+      --cat-verde: #059669;
+      --cat-amarelo: #d97706;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background: radial-gradient(circle at top, #1e293b, #0f172a);
+      background-color: var(--bg);
+      background-image: radial-gradient(#e2e8f0 1.2px, transparent 1.2px);
+      background-size: 20px 20px;
       color: var(--text);
       min-height: 100vh;
       display: flex;
@@ -32,33 +42,48 @@
       align-items: center;
       justify-content: space-between;
       padding: 16px;
-      overflow-x: hidden;
     }
 
+    /* Cabeçalho */
     header {
       text-align: center;
-      margin-top: 8px;
+      max-width: 420px;
+      margin-top: 6px;
     }
 
-    header h1 {
-      font-size: 1.4rem;
-      color: #fbbf24;
+    .school-tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
     }
 
     header p {
       font-size: 0.85rem;
-      color: #94a3b8;
+      color: var(--text-muted);
       margin-top: 4px;
     }
 
     /* Container da Roleta */
-    .roulette-container {
+    .wheel-wrapper {
       position: relative;
       width: 320px;
       height: 320px;
-      margin: 20px auto;
+      margin: 18px auto;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -66,244 +91,273 @@
 
     .pointer {
       position: absolute;
-      top: -12px;
+      top: -14px;
       left: 50%;
       transform: translateX(-50%);
       width: 0;
       height: 0;
-      border-left: 16px solid transparent;
-      border-right: 16px solid transparent;
-      border-top: 30px solid #f59e0b;
-      z-index: 10;
-      filter: drop-shadow(0 3px 4px rgba(0,0,0,0.5));
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-top: 30px solid #dc2626;
+      z-index: 20;
+      filter: drop-shadow(0 4px 5px rgba(0,0,0,0.25));
     }
 
     canvas {
       border-radius: 50%;
-      box-shadow: 0 0 25px rgba(0, 0, 0, 0.6), 0 0 10px rgba(251, 191, 36, 0.3);
+      background: #ffffff;
+      box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.15), 0 0 0 8px #ffffff, 0 0 0 12px #e2e8f0;
     }
 
-    .center-button {
+    .spin-btn {
       position: absolute;
-      width: 68px;
-      height: 68px;
-      background: #f8fafc;
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, #ffffff, #f1f5f9);
       color: #0f172a;
-      border: 4px solid #f59e0b;
+      border: 4px solid var(--gold);
       border-radius: 50%;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       font-weight: 800;
-      font-size: 1rem;
+      font-size: 0.95rem;
       cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-      z-index: 5;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      z-index: 10;
       user-select: none;
+      transition: transform 0.15s ease;
     }
 
-    .center-button:active {
-      transform: scale(0.95);
+    .spin-btn:active {
+      transform: scale(0.92);
+    }
+
+    .spin-btn span {
+      font-size: 0.62rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
     }
 
     /* Legendas */
-    .legend {
+    .legend-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
       width: 100%;
-      max-width: 340px;
-      margin-bottom: 12px;
-      font-size: 0.75rem;
+      max-width: 360px;
+      margin-bottom: 10px;
     }
 
-    .legend-item {
+    .legend-card {
       display: flex;
       align-items: center;
-      background: rgba(255, 255, 255, 0.05);
-      padding: 6px 10px;
-      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
 
-    .legend-dot {
-      width: 12px;
-      height: 12px;
+    .dot {
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       margin-right: 8px;
       flex-shrink: 0;
     }
 
-    /* Modal de Perguntas e Resultado */
+    /* Modal / Pop-up do Quiz */
     .modal-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(6px);
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 16px;
       z-index: 100;
     }
 
     .modal-card {
-      background: var(--card);
-      border-radius: 18px;
-      padding: 22px;
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 24px;
       width: 100%;
-      max-width: 360px;
-      box-shadow: 0 15px 30px rgba(0,0,0,0.5);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      max-width: 380px;
+      box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.25);
+      animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
     @keyframes popIn {
-      from { transform: scale(0.85); opacity: 0; }
+      from { transform: scale(0.88); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
 
-    .category-badge {
+    .category-pill {
       display: inline-block;
       padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 700;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      font-weight: 800;
       text-transform: uppercase;
       margin-bottom: 12px;
     }
 
     .question-title {
       font-size: 1.05rem;
-      line-height: 1.4;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.35;
       margin-bottom: 16px;
-      font-weight: 600;
     }
 
-    .options {
+    .options-list {
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
 
-    .option-btn {
-      background: rgba(255, 255, 255, 0.08);
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.15);
+    .option-item {
+      background: #f8fafc;
+      color: #1e293b;
+      border: 1.5px solid var(--border);
       border-radius: 12px;
       padding: 12px 14px;
       text-align: left;
       font-size: 0.9rem;
+      font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.15s ease;
     }
 
-    .option-btn:active {
+    .option-item:active {
       transform: scale(0.98);
-      background: rgba(255, 255, 255, 0.15);
+      background: #e2e8f0;
+      border-color: #cbd5e1;
     }
 
-    /* Tela de Feedback / Resultado */
-    .feedback-box {
+    /* Feedback / Tela Final */
+    .feedback-area {
       display: none;
       text-align: center;
     }
 
     .feedback-icon {
-      font-size: 3.5rem;
-      margin-bottom: 10px;
-    }
-
-    .feedback-text {
-      font-size: 1.15rem;
-      font-weight: 700;
+      font-size: 3.2rem;
       margin-bottom: 8px;
     }
 
-    .feedback-desc {
-      font-size: 0.85rem;
-      color: #cbd5e1;
-      line-height: 1.4;
-      background: rgba(0,0,0,0.25);
+    .feedback-headline {
+      font-size: 1.25rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .feedback-explanation {
+      font-size: 0.86rem;
+      color: #334155;
+      background: #f1f5f9;
       padding: 12px;
-      border-radius: 10px;
+      border-radius: 12px;
+      line-height: 1.45;
       margin-bottom: 16px;
     }
 
-    .claim-voucher {
-      border: 2px dashed #fbbf24;
-      background: rgba(251, 191, 36, 0.1);
+    .voucher {
+      border: 2px dashed #f59e0b;
+      background: #fffbeb;
       padding: 12px;
       border-radius: 12px;
       margin-top: 10px;
     }
 
-    .claim-voucher strong {
-      color: #fbbf24;
-      font-size: 1.1rem;
+    .voucher span {
+      font-size: 0.78rem;
+      color: #92400e;
       display: block;
     }
 
-    .btn-action {
-      background: #f59e0b;
-      color: #0f172a;
+    .voucher strong {
+      color: #b45309;
+      font-size: 1.05rem;
+      display: block;
+      margin-top: 2px;
+    }
+
+    .action-btn {
+      background: #0f172a;
+      color: #ffffff;
       border: none;
       width: 100%;
-      padding: 12px;
+      padding: 13px;
       border-radius: 12px;
       font-weight: 700;
+      font-size: 0.95rem;
       margin-top: 14px;
       cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .action-btn:active {
+      background: #1e293b;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>Roleta Histórica</h1>
+    <div class="school-tag">7° Ano • Turma 701</div>
+    <h1>Roleta do Conhecimento</h1>
     <p>Brasil Século XIX: Abolição e Exclusão Social</p>
   </header>
 
-  <div class="roulette-container">
+  <div class="wheel-wrapper">
     <div class="pointer"></div>
-    <canvas id="wheel" width="300" height="300"></canvas>
-    <div class="center-button" id="spinBtn">GIRAR</div>
+    <canvas id="wheelCanvas" width="300" height="300"></canvas>
+    <div class="spin-btn" id="spinBtn">
+      GIRAR
+      <span>Tocar</span>
+    </div>
   </div>
 
-  <div class="legend">
-    <div class="legend-item"><div class="legend-dot" style="background: var(--azul);"></div>Leis & História</div>
-    <div class="legend-item"><div class="legend-dot" style="background: var(--vermelho);"></div>O Cortiço</div>
-    <div class="legend-item"><div class="legend-dot" style="background: var(--verde);"></div>Imigração</div>
-    <div class="legend-item"><div class="legend-dot" style="background: var(--amarelo);"></div>Abolição Inconclusa</div>
+  <div class="legend-grid">
+    <div class="legend-card"><div class="dot" style="background: var(--cat-azul);"></div>Leis & História</div>
+    <div class="legend-card"><div class="dot" style="background: var(--cat-vermelho);"></div>O Cortiço</div>
+    <div class="legend-card"><div class="dot" style="background: var(--cat-verde);"></div>Imigração</div>
+    <div class="legend-card"><div class="dot" style="background: var(--cat-amarelo);"></div>Abolição Inconclusa</div>
   </div>
 
-  <!-- Modal do Quiz -->
+  <!-- Modal Interativo -->
   <div class="modal-overlay" id="quizModal">
     <div class="modal-card">
-      <div id="quizContent">
-        <span class="category-badge" id="catBadge">Categoria</span>
-        <h2 class="question-title" id="questionText">Texto da pergunta...</h2>
-        <div class="options" id="optionsBox"></div>
+      <div id="quizView">
+        <span class="category-pill" id="catPill">Categoria</span>
+        <h2 class="question-title" id="questionText">Pergunta...</h2>
+        <div class="options-list" id="optionsContainer"></div>
       </div>
 
-      <div class="feedback-box" id="feedbackBox">
-        <div class="feedback-icon" id="feedbackIcon">🎉</div>
-        <div class="feedback-text" id="feedbackText">Parabéns! Você acertou!</div>
-        <p class="feedback-desc" id="feedbackDesc">Explicação rápida da resposta histórica.</p>
-        <div class="claim-voucher" id="voucherBox">
-          <span>Mostre esta tela no stand:</span>
-          <strong>🎟️ VALE 1 BRINDE HISTÓRICO</strong>
+      <div class="feedback-area" id="feedbackView">
+        <div class="feedback-icon" id="feedbackEmoji">🎉</div>
+        <div class="feedback-headline" id="feedbackTitle">Muito bem!</div>
+        <p class="feedback-explanation" id="feedbackExplanation">Explicação histórica da resposta.</p>
+        <div class="voucher" id="voucherTag">
+          <span>Apresente esta tela ao grupo:</span>
+          <strong>🎟️ VALE 1 BRINDE NO STAND</strong>
         </div>
-        <button class="btn-action" id="closeBtn">Girar Novamente</button>
+        <button class="action-btn" id="tryAgainBtn">Girar Novamente</button>
       </div>
     </div>
   </div>
 
   <script>
     /* ========================================================
-       SISTEMA DE ÁUDIO VIA WEB AUDIO API (100% INDEPENDENTE)
+       EFEITOS SONOROS (WEB AUDIO API - DISPARO NATIVO)
        ======================================================== */
     let audioCtx = null;
 
@@ -316,285 +370,295 @@
       }
     }
 
-    // Som de clique/catraca ao rodar
-    function playTick() {
+    // Clique da roleta ao girar
+    function playTickSound() {
       try {
         initAudio();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(450, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.035);
+        osc.frequency.setValueAtTime(520, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(140, audioCtx.currentTime + 0.03);
 
-        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.035);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.03);
 
         osc.connect(gain);
         gain.connect(audioCtx.destination);
 
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.035);
+        osc.stop(audioCtx.currentTime + 0.03);
       } catch (e) {}
     }
 
-    // Som de acerto (Acorde alegre de vitória)
-    function playSuccess() {
+    // Acorde alegre de acerto
+    function playWinSound() {
       try {
         initAudio();
-        const freqs = [523.25, 659.25, 783.99, 1046.50]; // Notas Dó, Mi, Sol, Dó agudo
-        freqs.forEach((freq, idx) => {
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        notes.forEach((freq, i) => {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
 
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.09);
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.08);
 
-          gain.gain.setValueAtTime(0, audioCtx.currentTime + idx * 0.09);
-          gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + idx * 0.09 + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.09 + 0.35);
+          gain.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.08);
+          gain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + i * 0.08 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.08 + 0.32);
 
           osc.connect(gain);
           gain.connect(audioCtx.destination);
 
-          osc.start(audioCtx.currentTime + idx * 0.09);
-          osc.stop(audioCtx.currentTime + idx * 0.09 + 0.38);
+          osc.start(audioCtx.currentTime + i * 0.08);
+          osc.stop(audioCtx.currentTime + i * 0.08 + 0.35);
         });
       } catch (e) {}
     }
 
-    // Som de erro (Som grave de erro/buzzer)
-    function playError() {
+    // Som de erro/aviso
+    function playErrorSound() {
       try {
         initAudio();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
 
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(160, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.3);
+        osc.frequency.setValueAtTime(170, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(90, audioCtx.currentTime + 0.28);
 
-        gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.28);
 
         osc.connect(gain);
         gain.connect(audioCtx.destination);
 
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.3);
+        osc.stop(audioCtx.currentTime + 0.28);
       } catch (e) {}
     }
 
     /* ========================================================
-       BANCO DE PERGUNTAS DO TRABALHO
+       SETORES E QUESTÕES
        ======================================================== */
     const sectors = [
-      { name: "Leis & Linha do Tempo", color: "#2563eb", textColor: "#fff" },
-      { name: "O Cortiço (Bertoleza)", color: "#dc2626", textColor: "#fff" },
-      { name: "Imigração e Trabalho", color: "#16a34a", textColor: "#fff" },
-      { name: "Abolição Inconclusa", color: "#ca8a04", textColor: "#fff" }
+      { name: "Leis & Linha do Tempo", color: "#2563eb", textColor: "#ffffff", badgeBg: "#dbeafe", badgeColor: "#1e40af" },
+      { name: "O Cortiço", color: "#e11d48", textColor: "#ffffff", badgeBg: "#ffe4e6", badgeColor: "#9f1239" },
+      { name: "Imigração & Trabalho", color: "#059669", textColor: "#ffffff", badgeBg: "#d1fae5", badgeColor: "#065f46" },
+      { name: "Abolição Inconclusa", color: "#d97706", textColor: "#ffffff", badgeBg: "#fef3c7", badgeColor: "#92400e" }
     ];
 
-    const questions = {
-      0: [ // Azul
+    const questionsData = {
+      0: [
         {
-          q: "Qual lei de 1850 estabeleceu que terras públicas só poderiam ser adquiridas por compra, dificultando o acesso dos futuros libertos à propriedade?",
-          opts: ["Lei Áurea", "Lei de Terras", "Lei dos Sexagenários"],
+          q: "Qual lei de 1850 estabeleceu que as terras públicas só poderiam ser adquiridas por compra, dificultando o acesso de escravizados e trabalhadores livres?",
+          options: ["Lei Áurea", "Lei de Terras", "Lei dos Sexagenários"],
           correct: 1,
-          exp: "A Lei de Terras de 1850 impediu a ocupação livre e exigiu dinheiro vivo, deixando escravizados e trabalhadores pobres sem acesso à terra."
+          exp: "A Lei de Terras de 1850 impediu a ocupação tradicional e exigiu pagamento em dinheiro, restringindo o acesso da população pobre à posse da terra."
         },
         {
-          q: "A assinatura da Lei Áurea em 1888 garantiu moradia, terras e educação básica para os recém-libertos?",
-          opts: ["Sim, foi um plano completo", "Não, apenas declarou o fim legal sem suporte"],
+          q: "A assinatura da Lei Áurea em 1888 foi acompanhada por distribuição de terras, empregos e moradia para os libertos?",
+          options: ["Sim, previu ampla distribuição", "Não, apenas declarou o fim jurídico da escravidão"],
           correct: 1,
-          exp: "A Lei Áurea acabou legalmente com a escravidão, mas não criou medidas nem auxílios de inserção social para as famílias negras."
+          exp: "A Lei Áurea aboliu formalmente a escravidão, mas não criou nenhuma política pública de integração ou reparação social para os ex-escravizados."
         }
       ],
-      1: [ // Vermelho
+      1: [
         {
-          q: "No romance 'O Cortiço' (1890), que engano cruel o comerciante João Romão praticou contra Bertoleza?",
-          opts: ["Fugiu com as roupas dela", "Entregou-lhe uma falsa carta de alforria e reteve seus recursos", "Denunciou-a à polícia por roubo"],
-          correct: 1,
-          exp: "João Romão enganou Bertoleza com uma carta de alforria falsa para lucrar com o esforço dela enquanto enriquecia no cortiço."
+          q: "No romance 'O Cortiço' (1890), de Aluísio Azevedo, de que forma o comerciante João Romão engana Bertoleza?",
+          options: ["Falsificou sua carta de alforria e reteve suas economias", "Fugiu do cortiço levando suas roupas", "Denunciou Bertoleza falsamente por furto"],
+          correct: 0,
+          exp: "João Romão a iludiu com uma carta de alforria falsa para administrar seu dinheiro e explorar seu trabalho enquanto ampliava seu patrimônio."
         },
         {
-          q: "O que a personagem fictícia Bertoleza simboliza na realidade brasileira da época?",
-          opts: ["O sucesso rápido de mulheres libertas", "A exploração e desamparo vividos por mulheres negras no pós-abolição"],
+          q: "O que a trágica trajetória da personagem Bertoleza representa na crítica do livro?",
+          options: ["A ascensão rápida das mulheres libertas", "A exploração e desamparo vividos por mulheres negras na sociedade da época"],
           correct: 1,
-          exp: "Bertoleza simboliza as pessoas cujo trabalho árduo gerava riqueza, mas que eram descartadas e desprovidas de proteção jurídica."
+          exp: "Bertoleza simboliza as pessoas cujo trabalho árduo gerava riqueza alheia, mas que permaneciam sem proteção jurídica ou reconhecimento de direitos."
         }
       ],
-      2: [ // Verde
+      2: [
         {
-          q: "Por qual razão muitos proprietários e governos subsidiaram passagens e priorizaram imigrantes europeus no café?",
-          opts: ["Porque negros se recusavam a trabalhar", "Por preconceito racial e políticas de branqueamento da população"],
+          q: "Por que governos e cafeicultores incentivaram prioritariamente a imigração europeia no final do século XIX?",
+          options: ["Pela falta de trabalhadores nacionais", "Por preconceito racial e políticas de 'branqueamento' da população"],
           correct: 1,
-          exp: "Havia forte preconceito racial e um projeto de branqueamento promovido pelas elites, marginalizando o trabalhador negro nacional."
+          exp: "As elites da época valorizavam o imigrante europeu em detrimento dos trabalhadores negros libertos, orientadas por ideais de branqueamento."
         }
       ],
-      3: [ // Amarelo
+      3: [
         {
-          q: "O que significa historicamente o termo 'Abolição Inconclusa' abordado no trabalho?",
-          opts: ["A lei foi revogada anos depois", "A escravidão acabou na lei, mas suas marcas de exclusão social e racismo persistem"],
+          q: "O que significa historicamente o conceito de 'Abolição Inconclusa' apresentado pelo grupo?",
+          options: ["Que a escravidão foi legalizada novamente", "Que o fim da escravidão na lei não foi acompanhado por igualdade real e inclusão social"],
           correct: 1,
-          exp: "Indica que o término legal não eliminou as barreiras estruturais na educação, trabalho digno e moradia."
+          exp: "Significa que a abolição jurídica encerrou a escravidão formal, mas a desigualdade de acesso à terra, moradia e educação continuou ao longo das gerações."
         }
       ]
     };
 
     /* ========================================================
-       DESENHO E ANIMAÇÃO DA ROLETA
+       RENDERIZAÇÃO E GIRO DA ROLETA
        ======================================================== */
-    const canvas = document.getElementById("wheel");
+    const canvas = document.getElementById("wheelCanvas");
     const ctx = canvas.getContext("2d");
     const spinBtn = document.getElementById("spinBtn");
     const numSectors = sectors.length;
     const arc = (2 * Math.PI) / numSectors;
 
-    let currentAngle = 0;
+    let currentRotation = 0;
     let isSpinning = false;
     let lastTickAngle = 0;
 
-    function drawWheel() {
+    function renderWheel() {
       const radius = canvas.width / 2;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       for (let i = 0; i < numSectors; i++) {
-        const angle = currentAngle + i * arc;
+        const angle = currentRotation + i * arc;
+        
         ctx.beginPath();
         ctx.fillStyle = sectors[i].color;
         ctx.moveTo(radius, radius);
         ctx.arc(radius, radius, radius, angle, angle + arc);
         ctx.fill();
+
+        // Linha divisória suave
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 3;
         ctx.stroke();
 
-        // Rótulos
+        // Texto do setor
         ctx.save();
         ctx.fillStyle = sectors[i].textColor;
-        ctx.font = "bold 13px sans-serif";
+        ctx.font = "bold 13px system-ui, sans-serif";
         ctx.translate(radius, radius);
         ctx.rotate(angle + arc / 2);
         ctx.textAlign = "right";
-        ctx.fillText(sectors[i].name, radius - 15, 5);
+        ctx.fillText(sectors[i].name, radius - 16, 5);
         ctx.restore();
       }
     }
 
-    drawWheel();
+    renderWheel();
 
-    function spin() {
+    function startSpin() {
       if (isSpinning) return;
       initAudio();
       isSpinning = true;
 
-      const spinRounds = 4 + Math.random() * 3; // 4 a 7 voltas
-      const extraAngle = Math.random() * 2 * Math.PI;
-      const totalRotation = spinRounds * 2 * Math.PI + extraAngle;
-      
+      const fullSpins = 4 + Math.random() * 3;
+      const randomExtra = Math.random() * 2 * Math.PI;
+      const totalDelta = fullSpins * 2 * Math.PI + randomExtra;
+
       const duration = 4000;
       const startTime = performance.now();
-      const initialAngle = currentAngle;
+      const initialAngle = currentRotation;
       lastTickAngle = initialAngle;
 
-      function animate(time) {
-        const elapsed = time - startTime;
+      function frame(now) {
+        const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        // Easing cúbico para desaceleração realista
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-        currentAngle = initialAngle + totalRotation * easeOut;
+        // Easing desacelerando
+        const ease = 1 - Math.pow(1 - progress, 3);
+        currentRotation = initialAngle + totalDelta * ease;
 
-        // Disparo do som de rotação (a cada fração de setor percorrida)
-        if (Math.abs(currentAngle - lastTickAngle) > arc / 2) {
-          playTick();
-          lastTickAngle = currentAngle;
+        if (Math.abs(currentRotation - lastTickAngle) > arc / 2) {
+          playTickSound();
+          lastTickAngle = currentRotation;
         }
 
-        drawWheel();
+        renderWheel();
 
         if (progress < 1) {
-          requestAnimationFrame(animate);
+          requestAnimationFrame(frame);
         } else {
           isSpinning = false;
-          determineWinner();
+          handleResult();
         }
       }
 
-      requestAnimationFrame(animate);
+      requestAnimationFrame(frame);
     }
 
-    spinBtn.addEventListener("click", spin);
+    spinBtn.addEventListener("click", startSpin);
 
-    function determineWinner() {
-      // Cálculo do ponteiro no topo (3 * PI / 2 radianos ou 270 graus)
-      const normalizedAngle = (currentAngle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
-      const pointerAngle = (3 * Math.PI / 2 - normalizedAngle + 2 * Math.PI) % (2 * Math.PI);
-      const winnerIndex = Math.floor(pointerAngle / arc) % numSectors;
+    function handleResult() {
+      // Cálculo do ponteiro no topo (270 graus / 3*PI/2)
+      const normalized = (currentRotation % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+      const pointerTarget = (3 * Math.PI / 2 - normalized + 2 * Math.PI) % (2 * Math.PI);
+      const winningIdx = Math.floor(pointerTarget / arc) % numSectors;
 
-      showQuestion(winnerIndex);
+      openQuiz(winningIdx);
     }
 
     /* ========================================================
-       LÓGICA DO MODAL E DO QUIZ
+       CONTROLE DO QUIZ E DO MODAL
        ======================================================== */
     const modal = document.getElementById("quizModal");
-    const quizContent = document.getElementById("quizContent");
-    const feedbackBox = document.getElementById("feedbackBox");
-    const catBadge = document.getElementById("catBadge");
+    const quizView = document.getElementById("quizView");
+    const feedbackView = document.getElementById("feedbackView");
+    const catPill = document.getElementById("catPill");
     const questionText = document.getElementById("questionText");
-    const optionsBox = document.getElementById("optionsBox");
+    const optionsContainer = document.getElementById("optionsContainer");
 
-    function showQuestion(sectorIdx) {
-      const sector = sectors[sectorIdx];
-      const sectorQuestions = questions[sectorIdx];
-      const qData = sectorQuestions[Math.floor(Math.random() * sectorQuestions.length)];
+    function openQuiz(sectorIdx) {
+      const sec = sectors[sectorIdx];
+      const list = questionsData[sectorIdx];
+      const item = list[Math.floor(Math.random() * list.length)];
 
-      catBadge.textContent = sector.name;
-      catBadge.style.backgroundColor = sector.color;
-      catBadge.style.color = sector.textColor;
+      catPill.textContent = sec.name;
+      catPill.style.backgroundColor = sec.badgeBg;
+      catPill.style.color = sec.badgeColor;
 
-      questionText.textContent = qData.q;
-      optionsBox.innerHTML = "";
+      questionText.textContent = item.q;
+      optionsContainer.innerHTML = "";
 
-      qData.opts.forEach((optText, index) => {
+      item.options.forEach((optText, idx) => {
         const btn = document.createElement("button");
-        btn.className = "option-btn";
+        btn.className = "option-item";
         btn.textContent = optText;
-        btn.onclick = () => checkAnswer(index === qData.correct, qData.exp);
-        optionsBox.appendChild(btn);
+        btn.onclick = () => verify(idx === item.correct, item.exp);
+        optionsContainer.appendChild(btn);
       });
 
-      quizContent.style.display = "block";
-      feedbackBox.style.display = "none";
+      quizView.style.display = "block";
+      feedbackView.style.display = "none";
       modal.style.display = "flex";
     }
 
-    function checkAnswer(isCorrect, explanation) {
-      quizContent.style.display = "none";
-      feedbackBox.style.display = "block";
+    function verify(isCorrect, explanation) {
+      quizView.style.display = "none";
+      feedbackView.style.display = "block";
 
-      const icon = document.getElementById("feedbackIcon");
-      const title = document.getElementById("feedbackText");
-      const desc = document.getElementById("feedbackDesc");
-      const voucher = document.getElementById("voucherBox");
+      const emoji = document.getElementById("feedbackEmoji");
+      const title = document.getElementById("feedbackTitle");
+      const exp = document.getElementById("feedbackExplanation");
+      const voucher = document.getElementById("voucherTag");
 
-      desc.textContent = explanation;
+      exp.textContent = explanation;
 
       if (isCorrect) {
-        playSuccess(); // Toca áudio de vitória
-        icon.textContent = "🎉";
-        title.textContent = "Excelente! Você acertou!";
-        title.style.color = "#4ade80";
+        playWinSound();
+        confetti({
+          particleCount: 70,
+          spread: 60,
+          origin: { y: 0.6 }
+        });
+
+        emoji.textContent = "🎉";
+        title.textContent = "Parabéns! Você acertou!";
+        title.style.color = "#16a34a";
         voucher.style.display = "block";
       } else {
-        playError(); // Toca áudio de erro
-        icon.textContent = "💡";
-        title.textContent = "Quase lá! Veja a explicação:";
-        title.style.color = "#f87171";
+        playErrorSound();
+        emoji.textContent = "💡";
+        title.textContent = "Quase lá! Veja a reflexão:";
+        title.style.color = "#dc2626";
         voucher.style.display = "none";
       }
     }
 
-    document.getElementById("closeBtn").addEventListener("click", () => {
+    document.getElementById("tryAgainBtn").addEventListener("click", () => {
       modal.style.display = "none";
     });
   </script>
