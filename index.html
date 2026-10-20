@@ -1,313 +1,602 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Roleta Histórica - Feira de Ciências</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- React & ReactDOM (Development) -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
-    <!-- Babel para compilar JSX no navegador -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Roleta Histórica - 7º Ano</title>
+  <style>
+    :root {
+      --azul: #2563eb;
+      --vermelho: #dc2626;
+      --verde: #16a34a;
+      --amarelo: #ca8a04;
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #f8fafc;
+    }
 
-    <!-- Canvas Confetti para animação de vitória -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f3f4f6;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        /* Ajuste do gradiente cônico da roleta */
-        .wheel-gradient {
-            background: conic-gradient(
-                #3B82F6 0deg 90deg,   /* Azul */
-                #EF4444 90deg 180deg, /* Vermelho */
-                #10B981 180deg 270deg, /* Verde */
-                #F59E0B 270deg 360deg /* Amarelo */
-            );
-        }
+    body {
+      background: radial-gradient(circle at top, #1e293b, #0f172a);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      overflow-x: hidden;
+    }
 
-        .bg-pattern {
-            background-color: #ffffff;
-            opacity: 1;
-            background-image:  radial-gradient(#e5e7eb 1px, transparent 1px), radial-gradient(#e5e7eb 1px, #ffffff 1px);
-            background-size: 20px 20px;
-            background-position: 0 0, 10px 10px;
-        }
-    </style>
+    header {
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      color: #fbbf24;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    header p {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    /* Container da Roleta */
+    .roulette-container {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin: 20px auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 16px solid transparent;
+      border-right: 16px solid transparent;
+      border-top: 30px solid #f59e0b;
+      z-index: 10;
+      filter: drop-shadow(0 3px 4px rgba(0,0,0,0.5));
+    }
+
+    canvas {
+      border-radius: 50%;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.6), 0 0 10px rgba(251, 191, 36, 0.3);
+    }
+
+    .center-button {
+      position: absolute;
+      width: 68px;
+      height: 68px;
+      background: #f8fafc;
+      color: #0f172a;
+      border: 4px solid #f59e0b;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      z-index: 5;
+      user-select: none;
+    }
+
+    .center-button:active {
+      transform: scale(0.95);
+    }
+
+    /* Legendas */
+    .legend {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+      max-width: 340px;
+      margin-bottom: 12px;
+      font-size: 0.75rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+
+    /* Modal de Perguntas e Resultado */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 100;
+    }
+
+    .modal-card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 22px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .category-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .question-title {
+      font-size: 1.05rem;
+      line-height: 1.4;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option-btn {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .option-btn:active {
+      transform: scale(0.98);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Tela de Feedback / Resultado */
+    .feedback-box {
+      display: none;
+      text-align: center;
+    }
+
+    .feedback-icon {
+      font-size: 3.5rem;
+      margin-bottom: 10px;
+    }
+
+    .feedback-text {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .feedback-desc {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      line-height: 1.4;
+      background: rgba(0,0,0,0.25);
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+    }
+
+    .claim-voucher {
+      border: 2px dashed #fbbf24;
+      background: rgba(251, 191, 36, 0.1);
+      padding: 12px;
+      border-radius: 12px;
+      margin-top: 10px;
+    }
+
+    .claim-voucher strong {
+      color: #fbbf24;
+      font-size: 1.1rem;
+      display: block;
+    }
+
+    .btn-action {
+      background: #f59e0b;
+      color: #0f172a;
+      border: none;
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      margin-top: 14px;
+      cursor: pointer;
+    }
+  </style>
 </head>
-<body class="bg-pattern min-h-screen flex items-center justify-center p-4">
+<body>
 
-    <!-- Container do App React -->
-    <div id="root" class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden relative min-h-[600px] flex flex-col border border-gray-100"></div>
+  <header>
+    <h1>Roleta Histórica</h1>
+    <p>Brasil Século XIX: Abolição e Exclusão Social</p>
+  </header>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+  <div class="roulette-container">
+    <div class="pointer"></div>
+    <canvas id="wheel" width="300" height="300"></canvas>
+    <div class="center-button" id="spinBtn">GIRAR</div>
+  </div>
 
-        // Base de Dados de Perguntas
-        const questions = [
-            { 
-                id: 0, 
-                colorClass: 'bg-blue-500', 
-                textClass: 'text-blue-600',
-                borderClass: 'border-blue-200',
-                name: 'Legislação e Linha do Tempo', 
-                q: 'Qual lei aprovada em 1850 determinou que a terra pública só poderia ser adquirida por compra?', 
-                options: ['Lei Áurea', 'Lei de Terras', 'Lei dos Sexagenários'], 
-                correct: 1, 
-                explanation: 'Dificultou a autonomia das famílias que viriam a ser libertadas anos depois.' 
-            },
-            { 
-                id: 1, 
-                colorClass: 'bg-red-500', 
-                textClass: 'text-red-600',
-                borderClass: 'border-red-200',
-                name: 'Literatura e O Cortiço', 
-                q: 'No romance O Cortiço (1890), que engano João Romão aplica contra a trabalhadora Bertoleza?', 
-                options: ['Fingiu ser seu advogado', 'Entregou uma falsa carta de alforria e reteve o dinheiro dela', 'Roubou sua certidão de nascimento'], 
-                correct: 1, 
-                explanation: 'Bertoleza representa a vulnerabilidade extrema de mulheres negras na época.' 
-            },
-            { 
-                id: 2, 
-                colorClass: 'bg-green-500', 
-                textClass: 'text-green-600',
-                borderClass: 'border-green-200',
-                name: 'Imigração e Trabalho', 
-                q: 'Verdadeiro ou Falso: Todos os imigrantes enriqueceram rapidamente, enquanto os negros foram proibidos de trabalhar.', 
-                options: ['Verdadeiro', 'Falso'], 
-                correct: 1, 
-                explanation: 'Muitos imigrantes enfrentaram dívidas severas, mas contavam com incentivos governamentais e prioridade nas contratações.' 
-            },
-            { 
-                id: 3, 
-                colorClass: 'bg-yellow-500', 
-                textClass: 'text-yellow-600',
-                borderClass: 'border-yellow-200',
-                name: 'Abolição Inconclusa', 
-                q: 'O que significa o conceito histórico de "Abolição Inconclusa"?', 
-                options: ['Que a escravidão nunca terminou na lei.', 'O fim da escravidão não foi seguido por igualdade real de condições.', 'Que a Princesa Isabel assinou o documento errado.'], 
-                correct: 1, 
-                explanation: 'Sem políticas de reparação, muitas desigualdades se mantiveram ao longo das gerações.' 
-            }
-        ];
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background: var(--azul);"></div>Leis & História</div>
+    <div class="legend-item"><div class="legend-dot" style="background: var(--vermelho);"></div>O Cortiço</div>
+    <div class="legend-item"><div class="legend-dot" style="background: var(--verde);"></div>Imigração</div>
+    <div class="legend-item"><div class="legend-dot" style="background: var(--amarelo);"></div>Abolição Inconclusa</div>
+  </div>
 
-        function App() {
-            const [gameState, setGameState] = useState('home'); // home, spinning, question, feedback
-            const [rotation, setRotation] = useState(0);
-            const [currentCat, setCurrentCat] = useState(null);
-            const [selectedAnswer, setSelectedAnswer] = useState(null);
-            const [isCorrect, setIsCorrect] = useState(false);
+  <!-- Modal do Quiz -->
+  <div class="modal-overlay" id="quizModal">
+    <div class="modal-card">
+      <div id="quizContent">
+        <span class="category-badge" id="catBadge">Categoria</span>
+        <h2 class="question-title" id="questionText">Texto da pergunta...</h2>
+        <div class="options" id="optionsBox"></div>
+      </div>
 
-            const spinWheel = () => {
-                if (gameState === 'spinning') return;
-                setGameState('spinning');
-                
-                // Escolhe categoria aleatória (0 a 3)
-                const randomIdx = Math.floor(Math.random() * questions.length);
-                
-                // Cálculo matemático para a roleta parar exatamente na cor certa
-                // Cores: 0:Azul(0-90), 1:Vermelho(90-180), 2:Verde(180-270), 3:Amarelo(270-360)
-                // O ponteiro fica no topo (0 graus).
-                const targetAngles = [315, 225, 135, 45]; // Centro de cada fatia para o topo
-                const baseAngle = targetAngles[randomIdx];
-                
-                // Adiciona 5 voltas completas (1800 graus) + ajuste para a cor + variação aleatória de segurança
-                const spins = 360 * 5;
-                const newRotation = rotation + spins + (baseAngle - (rotation % 360));
-                
-                setRotation(newRotation);
+      <div class="feedback-box" id="feedbackBox">
+        <div class="feedback-icon" id="feedbackIcon">🎉</div>
+        <div class="feedback-text" id="feedbackText">Parabéns! Você acertou!</div>
+        <p class="feedback-desc" id="feedbackDesc">Explicação rápida da resposta histórica.</p>
+        <div class="claim-voucher" id="voucherBox">
+          <span>Mostre esta tela no stand:</span>
+          <strong>🎟️ VALE 1 BRINDE HISTÓRICO</strong>
+        </div>
+        <button class="btn-action" id="closeBtn">Girar Novamente</button>
+      </div>
+    </div>
+  </div>
 
-                // Espera a animação do CSS terminar (3 segundos)
-                setTimeout(() => {
-                    setCurrentCat(questions[randomIdx]);
-                    setGameState('question');
-                }, 3000);
-            };
+  <script>
+    /* ========================================================
+       SISTEMA DE ÁUDIO VIA WEB AUDIO API (100% INDEPENDENTE)
+       ======================================================== */
+    let audioCtx = null;
 
-            const handleAnswer = (index) => {
-                setSelectedAnswer(index);
-                const correct = index === currentCat.correct;
-                setIsCorrect(correct);
-                setGameState('feedback');
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
 
-                if (correct) {
-                    triggerConfetti();
-                }
-            };
+    // Som de clique/catraca ao rodar
+    function playTick() {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.035);
 
-            const triggerConfetti = () => {
-                const duration = 3 * 1000;
-                const animationEnd = Date.now() + duration;
-                const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.035);
 
-                const interval = setInterval(function() {
-                    const timeLeft = animationEnd - Date.now();
-                    if (timeLeft <= 0) return clearInterval(interval);
-                    const particleCount = 50 * (timeLeft / duration);
-                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
-                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
-                }, 250);
-            };
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
 
-            const randomInRange = (min, max) => Math.random() * (max - min) + min;
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.035);
+      } catch (e) {}
+    }
 
-            const resetGame = () => {
-                setGameState('home');
-                setSelectedAnswer(null);
-                setCurrentCat(null);
-                // Não reseta a rotação para que a próxima girada continue de onde parou
-            };
+    // Som de acerto (Acorde alegre de vitória)
+    function playSuccess() {
+      try {
+        initAudio();
+        const freqs = [523.25, 659.25, 783.99, 1046.50]; // Notas Dó, Mi, Sol, Dó agudo
+        freqs.forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
 
-            return (
-                <div className="flex flex-col h-full w-full relative">
-                    
-                    {/* Header Padrão */}
-                    <div className="bg-gray-900 text-white p-5 text-center rounded-t-3xl shadow-sm">
-                        <h1 className="text-xl font-bold tracking-tight">Roleta Histórica</h1>
-                        <p className="text-xs text-gray-400 mt-1 uppercase tracking-wider font-semibold">Grupo 4 - Abolição e Exclusão</p>
-                    </div>
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.09);
 
-                    <div className="flex-1 flex flex-col items-center justify-center p-6 pb-8">
-                        
-                        {/* TELA DA ROLETA */}
-                        {(gameState === 'home' || gameState === 'spinning') && (
-                            <div className="w-full flex flex-col items-center animate-fade-in">
-                                <h2 className="text-center text-gray-800 font-semibold mb-8 text-lg">
-                                    Gire a roleta para sortear seu desafio!
-                                </h2>
+          gain.gain.setValueAtTime(0, audioCtx.currentTime + idx * 0.09);
+          gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + idx * 0.09 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.09 + 0.35);
 
-                                <div className="relative w-64 h-64 mb-10">
-                                    {/* Ponteiro */}
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-3 w-0 h-0 border-l-[12px] border-r-[12px] border-t-[24px] border-l-transparent border-r-transparent border-t-gray-900 z-20 drop-shadow-lg"></div>
-                                    
-                                    {/* Roda */}
-                                    <div 
-                                        className="w-full h-full rounded-full border-[6px] border-gray-900 shadow-2xl wheel-gradient"
-                                        style={{
-                                            transform: `rotate(${rotation}deg)`,
-                                            transition: gameState === 'spinning' ? 'transform 3s cubic-bezier(0.25, 0.1, 0.25, 1)' : 'none'
-                                        }}
-                                    ></div>
-                                    
-                                    {/* Centro da Roleta */}
-                                    <div className="absolute inset-0 m-auto w-14 h-14 bg-gray-900 rounded-full border-[4px] border-white z-10 shadow-inner flex items-center justify-center">
-                                        <div className="w-4 h-4 bg-gray-300 rounded-full shadow-inner"></div>
-                                    </div>
-                                </div>
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
 
-                                <button 
-                                    onClick={spinWheel}
-                                    disabled={gameState === 'spinning'}
-                                    className={`w-full py-4 rounded-2xl font-bold text-lg shadow-lg text-white transition-all active:scale-95 ${gameState === 'spinning' ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
-                                >
-                                    {gameState === 'spinning' ? 'Girando...' : 'GIRAR A ROLETA'}
-                                </button>
-                            </div>
-                        )}
+          osc.start(audioCtx.currentTime + idx * 0.09);
+          osc.stop(audioCtx.currentTime + idx * 0.09 + 0.38);
+        });
+      } catch (e) {}
+    }
 
-                        {/* TELA DA PERGUNTA */}
-                        {gameState === 'question' && currentCat && (
-                            <div className="w-full flex flex-col animate-fade-in">
-                                <div className={`inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-6 self-start text-white shadow-sm ${currentCat.colorClass}`}>
-                                    {currentCat.name}
-                                </div>
-                                
-                                <h3 className="text-xl font-bold text-gray-800 mb-8 leading-snug">
-                                    {currentCat.q}
-                                </h3>
+    // Som de erro (Som grave de erro/buzzer)
+    function playError() {
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
 
-                                <div className="space-y-3 w-full">
-                                    {currentCat.options.map((opt, idx) => (
-                                        <button 
-                                            key={idx}
-                                            onClick={() => handleAnswer(idx)}
-                                            className="w-full text-left p-4 rounded-xl border-2 border-gray-200 hover:border-gray-400 hover:bg-gray-50 active:bg-gray-100 transition-colors font-medium text-gray-700 shadow-sm"
-                                        >
-                                            {opt}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+        osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.3);
 
-                        {/* TELA DE RESULTADO */}
-                        {gameState === 'feedback' && currentCat && (
-                            <div className="w-full flex flex-col animate-fade-in h-full justify-center">
-                                {isCorrect ? (
-                                    <div className="text-center">
-                                        <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <svg className="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                                        </div>
-                                        <h2 className="text-3xl font-extrabold text-green-600 mb-2">Acertou!</h2>
-                                        <p className="text-gray-600 mb-8 font-medium">Você mandou muito bem.</p>
-                                        
-                                        <div className="bg-gradient-to-r from-yellow-100 to-yellow-50 border-2 border-yellow-400 p-6 rounded-2xl shadow-md mb-8 transform scale-105">
-                                            <p className="text-yellow-800 font-bold text-lg leading-snug">
-                                                🎉 Mostre esta tela no stand para retirar seu brinde!
-                                            </p>
-                                        </div>
+        gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
 
-                                        <button onClick={resetGame} className="w-full py-4 rounded-xl font-bold text-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
-                                            Voltar ao Início
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="text-center">
-                                        <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                        </div>
-                                        <h2 className="text-2xl font-bold text-red-600 mb-2">Poxa, resposta incorreta.</h2>
-                                        
-                                        <div className={`mt-6 text-left p-5 rounded-2xl border-l-4 ${currentCat.borderClass} bg-white shadow-md`}>
-                                            <p className="text-sm text-gray-500 font-semibold uppercase tracking-wider mb-1">A resposta certa é:</p>
-                                            <p className={`font-bold mb-4 ${currentCat.textClass}`}>
-                                                {currentCat.options[currentCat.correct]}
-                                            </p>
-                                            <div className="h-px w-full bg-gray-100 mb-4"></div>
-                                            <p className="text-sm text-gray-700 leading-relaxed">
-                                                <span className="font-semibold">Contexto Histórico: </span> 
-                                                {currentCat.explanation}
-                                            </p>
-                                        </div>
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
 
-                                        <button onClick={resetGame} className="w-full mt-8 py-4 rounded-xl font-bold text-lg bg-gray-900 text-white shadow-lg hover:bg-gray-800 transition-colors active:scale-95">
-                                            Tentar Novamente
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } catch (e) {}
+    }
 
-                    </div>
-                </div>
-            );
+    /* ========================================================
+       BANCO DE PERGUNTAS DO TRABALHO
+       ======================================================== */
+    const sectors = [
+      { name: "Leis & Linha do Tempo", color: "#2563eb", textColor: "#fff" },
+      { name: "O Cortiço (Bertoleza)", color: "#dc2626", textColor: "#fff" },
+      { name: "Imigração e Trabalho", color: "#16a34a", textColor: "#fff" },
+      { name: "Abolição Inconclusa", color: "#ca8a04", textColor: "#fff" }
+    ];
+
+    const questions = {
+      0: [ // Azul
+        {
+          q: "Qual lei de 1850 estabeleceu que terras públicas só poderiam ser adquiridas por compra, dificultando o acesso dos futuros libertos à propriedade?",
+          opts: ["Lei Áurea", "Lei de Terras", "Lei dos Sexagenários"],
+          correct: 1,
+          exp: "A Lei de Terras de 1850 impediu a ocupação livre e exigiu dinheiro vivo, deixando escravizados e trabalhadores pobres sem acesso à terra."
+        },
+        {
+          q: "A assinatura da Lei Áurea em 1888 garantiu moradia, terras e educação básica para os recém-libertos?",
+          opts: ["Sim, foi um plano completo", "Não, apenas declarou o fim legal sem suporte"],
+          correct: 1,
+          exp: "A Lei Áurea acabou legalmente com a escravidão, mas não criou medidas nem auxílios de inserção social para as famílias negras."
+        }
+      ],
+      1: [ // Vermelho
+        {
+          q: "No romance 'O Cortiço' (1890), que engano cruel o comerciante João Romão praticou contra Bertoleza?",
+          opts: ["Fugiu com as roupas dela", "Entregou-lhe uma falsa carta de alforria e reteve seus recursos", "Denunciou-a à polícia por roubo"],
+          correct: 1,
+          exp: "João Romão enganou Bertoleza com uma carta de alforria falsa para lucrar com o esforço dela enquanto enriquecia no cortiço."
+        },
+        {
+          q: "O que a personagem fictícia Bertoleza simboliza na realidade brasileira da época?",
+          opts: ["O sucesso rápido de mulheres libertas", "A exploração e desamparo vividos por mulheres negras no pós-abolição"],
+          correct: 1,
+          exp: "Bertoleza simboliza as pessoas cujo trabalho árduo gerava riqueza, mas que eram descartadas e desprovidas de proteção jurídica."
+        }
+      ],
+      2: [ // Verde
+        {
+          q: "Por qual razão muitos proprietários e governos subsidiaram passagens e priorizaram imigrantes europeus no café?",
+          opts: ["Porque negros se recusavam a trabalhar", "Por preconceito racial e políticas de branqueamento da população"],
+          correct: 1,
+          exp: "Havia forte preconceito racial e um projeto de branqueamento promovido pelas elites, marginalizando o trabalhador negro nacional."
+        }
+      ],
+      3: [ // Amarelo
+        {
+          q: "O que significa historicamente o termo 'Abolição Inconclusa' abordado no trabalho?",
+          opts: ["A lei foi revogada anos depois", "A escravidão acabou na lei, mas suas marcas de exclusão social e racismo persistem"],
+          correct: 1,
+          exp: "Indica que o término legal não eliminou as barreiras estruturais na educação, trabalho digno e moradia."
+        }
+      ]
+    };
+
+    /* ========================================================
+       DESENHO E ANIMAÇÃO DA ROLETA
+       ======================================================== */
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const spinBtn = document.getElementById("spinBtn");
+    const numSectors = sectors.length;
+    const arc = (2 * Math.PI) / numSectors;
+
+    let currentAngle = 0;
+    let isSpinning = false;
+    let lastTickAngle = 0;
+
+    function drawWheel() {
+      const radius = canvas.width / 2;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < numSectors; i++) {
+        const angle = currentAngle + i * arc;
+        ctx.beginPath();
+        ctx.fillStyle = sectors[i].color;
+        ctx.moveTo(radius, radius);
+        ctx.arc(radius, radius, radius, angle, angle + arc);
+        ctx.fill();
+        ctx.stroke();
+
+        // Rótulos
+        ctx.save();
+        ctx.fillStyle = sectors[i].textColor;
+        ctx.font = "bold 13px sans-serif";
+        ctx.translate(radius, radius);
+        ctx.rotate(angle + arc / 2);
+        ctx.textAlign = "right";
+        ctx.fillText(sectors[i].name, radius - 15, 5);
+        ctx.restore();
+      }
+    }
+
+    drawWheel();
+
+    function spin() {
+      if (isSpinning) return;
+      initAudio();
+      isSpinning = true;
+
+      const spinRounds = 4 + Math.random() * 3; // 4 a 7 voltas
+      const extraAngle = Math.random() * 2 * Math.PI;
+      const totalRotation = spinRounds * 2 * Math.PI + extraAngle;
+      
+      const duration = 4000;
+      const startTime = performance.now();
+      const initialAngle = currentAngle;
+      lastTickAngle = initialAngle;
+
+      function animate(time) {
+        const elapsed = time - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing cúbico para desaceleração realista
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        currentAngle = initialAngle + totalRotation * easeOut;
+
+        // Disparo do som de rotação (a cada fração de setor percorrida)
+        if (Math.abs(currentAngle - lastTickAngle) > arc / 2) {
+          playTick();
+          lastTickAngle = currentAngle;
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+        drawWheel();
 
-    <style>
-        /* Animação suave de entrada para as telas */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          isSpinning = false;
+          determineWinner();
         }
-        .animate-fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-    </style>
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    spinBtn.addEventListener("click", spin);
+
+    function determineWinner() {
+      // Cálculo do ponteiro no topo (3 * PI / 2 radianos ou 270 graus)
+      const normalizedAngle = (currentAngle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+      const pointerAngle = (3 * Math.PI / 2 - normalizedAngle + 2 * Math.PI) % (2 * Math.PI);
+      const winnerIndex = Math.floor(pointerAngle / arc) % numSectors;
+
+      showQuestion(winnerIndex);
+    }
+
+    /* ========================================================
+       LÓGICA DO MODAL E DO QUIZ
+       ======================================================== */
+    const modal = document.getElementById("quizModal");
+    const quizContent = document.getElementById("quizContent");
+    const feedbackBox = document.getElementById("feedbackBox");
+    const catBadge = document.getElementById("catBadge");
+    const questionText = document.getElementById("questionText");
+    const optionsBox = document.getElementById("optionsBox");
+
+    function showQuestion(sectorIdx) {
+      const sector = sectors[sectorIdx];
+      const sectorQuestions = questions[sectorIdx];
+      const qData = sectorQuestions[Math.floor(Math.random() * sectorQuestions.length)];
+
+      catBadge.textContent = sector.name;
+      catBadge.style.backgroundColor = sector.color;
+      catBadge.style.color = sector.textColor;
+
+      questionText.textContent = qData.q;
+      optionsBox.innerHTML = "";
+
+      qData.opts.forEach((optText, index) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.textContent = optText;
+        btn.onclick = () => checkAnswer(index === qData.correct, qData.exp);
+        optionsBox.appendChild(btn);
+      });
+
+      quizContent.style.display = "block";
+      feedbackBox.style.display = "none";
+      modal.style.display = "flex";
+    }
+
+    function checkAnswer(isCorrect, explanation) {
+      quizContent.style.display = "none";
+      feedbackBox.style.display = "block";
+
+      const icon = document.getElementById("feedbackIcon");
+      const title = document.getElementById("feedbackText");
+      const desc = document.getElementById("feedbackDesc");
+      const voucher = document.getElementById("voucherBox");
+
+      desc.textContent = explanation;
+
+      if (isCorrect) {
+        playSuccess(); // Toca áudio de vitória
+        icon.textContent = "🎉";
+        title.textContent = "Excelente! Você acertou!";
+        title.style.color = "#4ade80";
+        voucher.style.display = "block";
+      } else {
+        playError(); // Toca áudio de erro
+        icon.textContent = "💡";
+        title.textContent = "Quase lá! Veja a explicação:";
+        title.style.color = "#f87171";
+        voucher.style.display = "none";
+      }
+    }
+
+    document.getElementById("closeBtn").addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+  </script>
 </body>
 </html>
